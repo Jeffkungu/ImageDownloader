@@ -3,6 +3,7 @@ package com.example.jeffkungu.imagedownloader;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -20,8 +21,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static android.view.View.VISIBLE;
-
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
     private String INPUT_STREAM = "INPUT_STREAM: ";
@@ -30,6 +29,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private String[] listOfImages;
     private ProgressBar progressBar;
     private LinearLayout loadingSection = null;
+    private Handler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         listOfImages = getResources().getStringArray(R.array.imageUrls);
         progressBar = findViewById(R.id.downloadProgress);
         loadingSection = findViewById(R.id.loadingSection);
+        handler =  new Handler();
     }
 
     @Override
@@ -53,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         DownloadImagesThread myThread = new DownloadImagesThread(url);
         Thread thread = new Thread(myThread);
         thread.start();
+        Log.d("Thread name = ", thread.currentThread().getName());
     }
 
     public boolean downloadImageUsingThreads(String url) {
@@ -83,14 +85,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        }
-        finally {
-            this.runOnUiThread(new Runnable() {
+        } finally {
+            handler.post(new Runnable() {
                 @Override
                 public void run() {
                     loadingSection.setVisibility(View.GONE);
                 }
             });
+
             if (connection!=null) {
                 connection.disconnect();
             }
@@ -122,10 +124,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         @Override
         public void run() {
-            MainActivity.this.runOnUiThread(new Runnable() {
+            handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    loadingSection.setVisibility(VISIBLE);
+                    loadingSection.setVisibility(View.VISIBLE);
                 }
             });
             downloadImageUsingThreads(url);
