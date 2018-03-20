@@ -1,6 +1,7 @@
 package com.example.jeffkungu.imagedownloader;
 
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
@@ -50,9 +51,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     public void downloadImage(View view) {
         String url = editText.getText().toString();
-        DownloadImagesThread myThread = new DownloadImagesThread(url);
-        Thread thread = new Thread(myThread);
-        thread.start();
+        DownloadImagesTask downloadImagesTask = new DownloadImagesTask(url);
+        downloadImagesTask.execute(url); // used to start the asynchronous task. the url param will be received at the doInBackground method.
     }
 
     public boolean downloadImageUsingThreads(String url) {
@@ -83,14 +83,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        }
-        finally {
-            this.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    loadingSection.setVisibility(View.GONE);
-                }
-            });
+        } finally {
             if (connection!=null) {
                 connection.disconnect();
             }
@@ -112,23 +105,29 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         return successful;
     }
 
-    class DownloadImagesThread implements Runnable {
+    public class DownloadImagesTask extends AsyncTask<String, Void, Void> {
 
         private String url;
 
-        public DownloadImagesThread(String url) {
+        public DownloadImagesTask(String url) {
             this.url = url;
         }
 
         @Override
-        public void run() {
-            MainActivity.this.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    loadingSection.setVisibility(VISIBLE);
-                }
-            });
+        protected Void doInBackground(String... strings) { // Performs the long running task.
             downloadImageUsingThreads(url);
+            return null;
         }
+
+        @Override
+        protected void onPreExecute() {  // Its called immediately the .execute method is called. Sets up the relevant variables needed before the task is started.
+            loadingSection.setVisibility(VISIBLE);
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) { // Its called after the task is finished.
+            loadingSection.setVisibility(View.GONE);
+        }
+
     }
 }
