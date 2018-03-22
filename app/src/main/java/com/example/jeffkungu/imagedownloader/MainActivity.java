@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     public void downloadImage(View view) {
         String url = editText.getText().toString();
-        DownloadImagesTask downloadImagesTask = new DownloadImagesTask(url);
+        DownloadImagesTask downloadImagesTask = new DownloadImagesTask();
         downloadImagesTask.execute(url); // used to start the asynchronous task. the url param will be received at the doInBackground method.
     }
 
@@ -107,15 +107,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     public class DownloadImagesTask extends AsyncTask<String, Void, Void> {
 
-        private String url;
-
-        public DownloadImagesTask(String url) {
-            this.url = url;
-        }
-
         @Override
         protected Void doInBackground(String... strings) { // Performs the long running task.
-            downloadImageUsingThreads(url);
+            downloadImageUsingThreads(strings[0]);
             return null;
         }
 
